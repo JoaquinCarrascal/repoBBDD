@@ -7,8 +7,8 @@ o minúscula.*/
 SELECT i.*
 FROM inmueble i JOIN operacion o USING(id_inmueble)
 	JOIN vendedor v USING(id_vendedor)
-WHERE (((date_part('DOW' , o.fecha_operacion)) = 1 AND (date_part('Month' , o.fecha_operacion)) = 2) 
-	   OR((date_part('DOW' , o.fecha_operacion)) = 5 AND (date_part('Month' , o.fecha_operacion)) = 3))
+WHERE (((DATE_PART('DOW' , o.fecha_operacion)) = 1 AND (DATE_PART('Month' , o.fecha_operacion)) = 2) 
+	   OR((DATE_PART('DOW' , o.fecha_operacion)) = 5 AND (DATE_PART('Month' , o.fecha_operacion)) = 3))
 	   AND i.superficie > 200
 	   AND UPPER(v.nombre) = 'A';
 	   
@@ -23,21 +23,19 @@ WHERE t.nombre IN ('Piso' , 'Casa')
 	AND date_part('Month' , i.fecha_alta) IN (3 , 4)
 	AND i.provincia IN ('Cádiz','Málaga','Almería','Huelva','Granada');
 	
-	
 /*3.- ¿Cuál es la media del porcentaje de diferencia entre 
 el precio inicial (en la tabla inmueble) y el precio final 
 (en la tabla operación) para aquellas operaciones de alquiler 
 realizadas en enero de cualquier año, donde el tipo del inmueble 
 es Oficina, Local o Suelo?*/
 
-SELECT ROUND (AVG((i.precio/o.precio_final)),2)
+SELECT ROUND(AVG(ABS(precio - precio_final)/precio)*100,2)
 FROM inmueble i JOIN operacion o  USING (id_inmueble)
 	JOIN tipo t ON (tipo_inmueble=t.id_tipo)
-WHERE TO_CHAR(o.fecha_operacion,'MM') IN ('01')
+WHERE TO_CHAR(o.fecha_operacion,'MM') = '01'
+	AND tipo_operacion = 'Alquiler'
 	AND t.nombre IN ('Oficina','Local','Suelo');
-	
 
-	
 /*4.- Seleccionar el nombre de aquellos compradores de Casa o 
 Piso en las provincias de Jaén o Córdoba, donde el precio 
 final de inmueble esté entre 150.000 y 200.000€, para aquellos 
@@ -45,29 +43,30 @@ inmuebles que han tardado entre 3 y 4 meses en venderse.*/
 
 SELECT c.nombre
 FROM inmueble i JOIN tipo t ON (tipo_inmueble=t.id_tipo)
-				JOIN  operacion o USING (id_inmueble)
-				JOIN comprador c USING (id_cliente)
+	JOIN  operacion o USING (id_inmueble)
+	JOIN comprador c USING (id_cliente)
 WHERE tipo_operacion = 'Venta'
 	AND provincia IN ('Jaén','Córdoba')
 	AND t.nombre IN ('Casa','Piso')
 	AND precio_final BETWEEN 150000 AND 200000
-	AND fecha_operacion-fecha_alta BETWEEN 90 AND 120;
+	AND AGE(fecha_operacion , fecha_alta)
+		BETWEEN '3 mon'::interval AND '4 mon'::interval;
 
 /*5.- Selecciona la media del precio inicial (en la tabla inmueble), 
 del precio final (en la tabla operación) y de la diferencia en porcentaje
 entre ellas de aquellas viviendas (Casa o Piso) en alquiler que tengan 
 menos de 100 metros cuadrados y que hayan tardado un año o más en alquilarse.*/
 
-SELECT ROUND(AVG (i.precio),2) AS "i.med_prec_fin", 
+SELECT ROUND(AVG (precio_inicial),2) AS "i.med_prec_fin", 
     ROUND(AVG (o.precio_final),2) AS "o.media_precio_final",
     ROUND(AVG ((i.precio / o.precio_final)*100),2) AS "porcentaje_precio"
 FROM inmueble i JOIN operacion o USING (id_inmueble)
         JOIN tipo t ON (i.tipo_inmueble = t.id_tipo)
 WHERE  t.nombre IN ('Casa','Piso')
   AND i.superficie > 100
-  AND fecha_operacion-fecha_alta BETWEEN 365 AND 700000;
+  AND fecha_operacion >= fecha_alta + '1 year'::interval;
 
-/*Selecciona el alquiler de vivienda (Casa o Piso) más caro 
+/*6.- Selecciona el alquiler de vivienda (Casa o Piso) más caro 
 realizado en Julio o Agosto de cualquier año en la provincia de Huelva.*/
 
 SELECT MAX (o.precio_final)
