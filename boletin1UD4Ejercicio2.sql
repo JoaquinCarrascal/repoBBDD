@@ -9,9 +9,10 @@ WHERE d.department_name IN ('IT' , 'Finance')
 
 --Seleccionar el FIRST_NAME y LAST_NAME de los managers de los empleados del departamento de Administration.
 
-SELECT e.first_name, e.last_name
-FROM employees e JOIN jobs j USING(job_id)
-WHERE  j.job_title = 'Administration Vice President';
+SELECT DISTINCT m.first_name, m.last_name
+FROM employees m JOIN employees e ON(m.employee_id=e.manager_id)
+	JOIN departments d ON(e.department_id=d.department_id)
+WHERE department_name = 'Administration';
 
 --Seleccionar el COUNTRY_NAME donde tiene localización el departamento de Public Relations
 
@@ -41,6 +42,7 @@ FROM employees e JOIN dependents de USING(employee_id)
 	JOIN countries c USING (country_id)
 	JOIN regions r USING (region_id)
 WHERE r.region_name = 'Americas'
+	AND de.relationship = 'Child'
 ORDER BY c.country_name;
 
 --Diseña una consulta (incluyendo su solución) para la base de datos 
