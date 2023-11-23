@@ -28,9 +28,9 @@ FROM customers JOIN orders USING(customer_id);
 
 --2.-
 SELECT COUNT(*)
-FROM orders o JOIN shippers s ON (ship_via = shipper_id)
-WHERE DATE_PART('year', o.order_date)::numeric BETWEEN 1990 AND 1999
-	AND s.company_name IN ('Federal Shipping' , 'United Package');
+FROM orders JOIN shippers ON (ship_via = shipper_id)
+WHERE DATE_PART('year', shipped_date) BETWEEN 1990 AND 1999
+	AND company_name IN ('Federal Shipping' , 'United Package');
 	
 --3.-
 SELECT DISTINCT p.product_name
@@ -39,10 +39,9 @@ FROM orders JOIN order_details od USING(order_id)
 WHERE od.quantity != 0;
 
 --4.-
-SELECT ROUND(SUM(((od.unit_price*od.quantity)
+SELECT ROUND(SUM((od.unit_price*od.quantity)
 				  -((od.unit_price*od.quantity)
-					*COALESCE(od.discount, 0)))
-				 	 +o.freight)::numeric , 2)
+					*COALESCE(od.discount, 0)))::numeric , 2)
 FROM orders o JOIN order_details od USING(order_id)
 WHERE TO_CHAR(order_date, 'YY') = '96';
 
@@ -50,7 +49,7 @@ WHERE TO_CHAR(order_date, 'YY') = '96';
 SELECT DISTINCT c.contact_name AS "Nombre de contacto del cliente", e.first_name || ' ' || e.last_name AS "Nombre del empleado"
 FROM customers c JOIN orders o USING(customer_id)
 	JOIN employees e USING(employee_id)
-WHERE AGE(o.shipped_date , o.required_date) < '20 day';
+WHERE AGE(o.shipped_date , o.required_date) BETWEEN -('19 day'::interval) AND ('19 day'::interval);
 
 --6.-
 --Seleciona el id de envío de los pedidos en los cuales sólamente
