@@ -8,7 +8,7 @@ en Sevilla a lo largo del año 2019
 SELECT i.*
 FROM inmueble i JOIN tipo t ON(id_tipo = tipo_inmueble)
 	JOIN operacion USING(id_inmueble)
-WHERE EXTRACT(year FROM fecha_operacion) = 2019
+WHERE EXTRACT(year FROM fecha_operacion) = 2021
 	AND provincia = 'Sevilla'
 	AND t.nombre = 'Piso'
 	AND tipo_operacion = 'Venta'
@@ -21,11 +21,19 @@ en Málaga en los meses de Julio y
 Agosto (da igual de qué año).
 */
 
-SELECT ROUND(AVG(precio_final),2) || '€' AS "Precio medio de los alquileres en Málaga"
-FROM inmueble i JOIN operacion USING(id_inmueble)
+SELECT ROUND(AVG(precio),2) || '€' AS "Precio medio de los alquileres en Málaga"
+FROM inmueble i
 WHERE provincia = 'Málaga'
-	AND DATE_PART('month',fecha_operacion) IN (7,8)
+	AND DATE_PART('month',fecha_alta) IN (7,8)
 	AND tipo_operacion = 'Alquiler';
+
+--Variant: los que aún no se han alquilado. 
+SELECT ROUND(AVG(precio),2) || '€' AS "Precio medio de los alquileres que aun no se han alquilado en Málaga"
+FROM inmueble i LEFT JOIN operacion USING(id_inmueble)
+WHERE provincia = 'Málaga'
+	AND DATE_PART('month',fecha_alta) IN (7,8)
+	AND tipo_operacion = 'Alquiler'
+	AND precio_final IS NULL;
 	
 /*
 3.- Selecciona los inmuebles que se han vendido en 
