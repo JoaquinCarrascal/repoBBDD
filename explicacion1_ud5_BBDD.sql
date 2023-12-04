@@ -32,4 +32,26 @@ FROM vuelo v JOIN aeropuerto origen ON (desde = origen.id_aeropuerto)
 GROUP BY origen.ciudad, destino.ciudad
 ORDER BY origen.ciudad;
 
+SELECT DATE_PART('mon' , salida) AS "mes" , COUNT(*)
+FROM vuelo
+GROUP BY mes
+ORDER BY mes;
 
+
+SELECT TO_CHAR(salida , 'DD/MM') AS "mesydia" , COUNT(*)
+FROM vuelo
+GROUP BY mesydia
+ORDER BY mesydia;
+
+SELECT EXTRACT(isodow FROM salida) AS "dow", COUNT(*)
+FROM vuelo
+WHERE EXTRACT(month from salida) <= 6
+GROUP BY dow
+ORDER BY dow;
+
+
+SELECT EXTRACT(isodow FROM salida) AS "dow", COUNT(*)
+FROM vuelo
+GROUP BY dow
+HAVING COUNT(*) >= 30
+ORDER BY dow;
