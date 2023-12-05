@@ -49,5 +49,8 @@ LIMIT 1;
 /*6.- Seleccionar el número de empleados que empezaron a 
 trabajar cada año, ordenando la salida por el año.*/
 
-SELECT 
+SELECT EXTRACT(year FROM hire_date) AS "anio", COUNT(employee_id)
+FROM employees
+GROUP BY anio
+ORDER BY anio;
 
