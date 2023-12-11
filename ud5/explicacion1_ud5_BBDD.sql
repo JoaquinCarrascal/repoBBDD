@@ -55,3 +55,31 @@ FROM vuelo
 GROUP BY dow
 HAVING COUNT(*) >= 30
 ORDER BY dow;
+
+--SUBQUERY HR
+/*
+Empleados que cobran mas que John Chen y menos que Nancy Greenberg
+*/
+SELECT *
+FROM employees
+WHERE salary > (
+				SELECT salary
+				FROM employees
+				WHERE first_name = 'John'
+					AND last_name = 'Chen'
+				)
+	AND salary < (
+				SELECT salary
+				FROM employees
+				WHERE first_name = 'Nancy'
+					AND last_name = 'Greenberg'
+				);
+				
+/*Prueba y error*/
+SELECT *
+FROM employees
+WHERE salary > (
+				SELECT salary
+				FROM employees
+				WHERE department_id = 3
+				);
