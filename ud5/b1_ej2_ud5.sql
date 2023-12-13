@@ -59,13 +59,7 @@ FROM order_details od JOIN products USING(product_id)
 	JOIN categories USING (category_id)
 	GROUP BY category_name,product_name;
 	
-/*100€
-25%
-100€ - 100€ *25/100
-100€ - 100€ * 0.25
-100€ * 1 - 100€ * 0.25
-100€ * (1 - 0.25)
-precio * (1 - descuento)*/
+
 
 /*
 5.- Selecciona aquellos clientes (CUSTOMERS) para 

@@ -83,3 +83,11 @@ WHERE salary > (
 				FROM employees
 				WHERE department_id = 3
 				);
+
+/*100€
+25%
+100€ - 100€ *25/100
+100€ - 100€ * 0.25
+100€ * 1 - 100€ * 0.25
+100€ * (1 - 0.25)
+precio * (1 - descuento)*/
