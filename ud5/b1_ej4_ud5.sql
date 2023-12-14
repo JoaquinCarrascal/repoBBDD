@@ -11,7 +11,6 @@ Seleccionar los alquileres más baratos de cada provincia y mes (da igual el dí
 Debe aparecer el nombre del aeropuerto de salida, el de llegada, 
 la fecha y hora de salida y llegada y la duración.
 */
-sa.nombre, la.nombre,salida,llegada,
 
 SELECT TO_CHAR(salida, 'day'),sa.nombre, la.nombre,salida,llegada,llegada-salida
 FROM vuelo JOIN aeropuerto sa ON(sa.id_aeropuerto = desde)
@@ -20,4 +19,5 @@ WHERE llegada - salida >= (
 					SELECT MAX(llegada-salida)
 					FROM vuelo JOIN aeropuerto sa ON(sa.id_aeropuerto = desde)
 						JOIN aeropuerto la ON(la.id_aeropuerto = hasta)
-							)
+					GROUP BY TO_CHAR(salida, 'day')
+							);
