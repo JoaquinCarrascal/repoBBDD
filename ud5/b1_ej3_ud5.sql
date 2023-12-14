@@ -28,8 +28,9 @@ WHERE t.nombre = 'Casa'
 	AND i.tipo_operacion = 'Venta' 
 	AND provincia = 'Almería'
 	AND precio_final > (
-		SELECT AVG(i.precio)
+		SELECT AVG(precio_final)
 		FROM inmueble i JOIN tipo t ON(id_tipo = tipo_inmueble)
+			JOIN operacion USING(id_inmueble)
 		WHERE t.nombre = 'Casa' 
 		AND i.tipo_operacion = 'Venta' 
 		AND provincia = 'Almería'
@@ -54,7 +55,7 @@ WHERE id_vendedor NOT IN (
 4.- Selecciona el origen y el destino de los 10 vuelos con 
 una duración menor. Debes realizarlo usando subconsultas.
 */
-SELECT id_vuelo, asalida.nombre AS "salida" ,allegada.nombre AS "llegada"
+SELECT DISTINCT id_vuelo, asalida.nombre AS "salida" ,allegada.nombre AS "llegada"
 		--MAKE_TIME(EXTRACT(hour FROM llegada)::numeric,
 		--EXTRACT(min FROM llegada)::numeric, (( intento fallido ): ))
 		--EXTRACT(sec FROM llegada)::numeric) AS "duracion"
@@ -78,12 +79,17 @@ SELECT SUM(preciofinal)||'€' AS "dinero ganado total"
 FROM(
 	SELECT id_vuelo,precio,COUNT(id_reserva),precio*COUNT(id_reserva)*(1-COALESCE(descuento/100,0)) AS "preciofinal"
 	FROM vuelo JOIN reserva USING(id_vuelo)
-	WHERE EXTRACT(isodow FROM salida) IN (5,6,7)
+	WHERE EXTRACT(isodow FROM salida) IN (5,6,7) --no era lo que se pedía
 	AND EXTRACT(mon FROM salida) IN (7,8)
 	GROUP BY id_vuelo,precio
 	);
 	
-
+SELECT id_vuelo,
+    SUM(precio * (1 - COALESCE(descuento,0)/100))
+FROM vuelo JOIN reserva USING(id_vuelo)
+WHERE EXTRACT(isodow FROM salida) IN (5,6,7)
+  AND EXTRACT(month FROM salida) IN (7,8)
+GROUP BY id_vuelo;
 
 
 
