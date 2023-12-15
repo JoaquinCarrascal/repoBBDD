@@ -38,25 +38,42 @@ aeropuerto. Debe aparecer el nombre del cliente, el nombre y la
 ciudad del aeropuerto y la cuantía de dinero que ha gastado.
 */
 
-SELECT c.nombre,c.apellido1,c.apellido2, sa.nombre, sa.ciudad, precio * COUNT(sa.id_aeropuerto) * (1 - COALESCE(descuento,0)) AS "dinerogastado"
+/*SELECT c.nombre,c.apellido1,c.apellido2, sa.nombre, sa.ciudad, SUM(precio * (1 - COALESCE(descuento,0)/100)) AS "dinerogastado"
 FROM cliente c JOIN reserva USING(id_cliente)
-	JOIN vuelo USING(id_vuelo)
+	JOIN vuelo v1 USING(id_vuelo)
 	JOIN aeropuerto sa ON(sa.id_aeropuerto = desde)
-GROUP BY c.nombre,c.apellido1,c.apellido2, sa.nombre, sa.ciudad,precio,descuento
-HAVING precio * COUNT(sa.id_aeropuerto) * (1 - COALESCE(descuento,0)) >= ALL (
-													SELECT precio * COUNT(sa.id_aeropuerto) * (1 - COALESCE(descuento,0)) AS "dinerogastado"
+GROUP BY c.nombre,c.apellido1,c.apellido2, sa.nombre, sa.ciudad,v1.precio,v1.descuento,v1.desde
+HAVING SUM(precio * (1 - COALESCE(descuento,0)/100)) >= ALL (
+													SELECT SUM(precio * (1 - COALESCE(descuento,0)/100)) AS "dinerogastado"
 													FROM cliente c JOIN reserva USING(id_cliente)
-														JOIN vuelo USING(id_vuelo)
+														JOIN vuelo v2 USING(id_vuelo)
 														JOIN aeropuerto sa ON(sa.id_aeropuerto = desde)
-													GROUP BY c.nombre,c.apellido1,c.apellido2, sa.nombre, sa.ciudad,precio,descuento						 
-													ORDER BY dinerogastado DESC,c.nombre,c.apellido1,c.apellido2
-															);
+													WHERE v1.desde = v2.desde
+													GROUP BY id_cliente,v2.precio,v2.descuento
+															);*/
 															
+SELECT c.nombre, c.apellido1, c.apellido2,
+        a.nombre, a.ciudad,  
+        SUM(precio * (1 - (COALESCE(descuento,0)/100)))
+FROM vuelo v1 JOIN reserva USING (id_vuelo)
+        JOIN cliente c USING (id_cliente)
+        JOIN aeropuerto a ON (desde = id_aeropuerto)
+GROUP BY c.nombre, c.apellido1, c.apellido2,
+        a.nombre, a.ciudad, v1.desde
+HAVING SUM(precio *
+           (1 - (COALESCE(descuento,0)/100))) >= ALL (
+           SELECT SUM(precio * (1 -
+                    (COALESCE(descuento,0)/100)))
+           FROM vuelo v2 JOIN reserva USING (id_vuelo)
+           WHERE v1.desde = v2.desde
+           GROUP BY id_cliente
+        );														
 /*
 3.- Seleccionar el piso que se ha vendido más caro de cada provincia. 
 Debe aparecer la provincia, el nombre del comprador, la fecha de la operación y la cuantía.
 */
-SELECT provincia,c.nombre,fecha_operacion,precio_final
+
+/*SELECT provincia,c.nombre,fecha_operacion,precio_final
 FROM inmueble i JOIN operacion USING(id_inmueble)
 	JOIN tipo t ON (id_tipo = tipo_inmueble)
 	JOIN comprador c USING(id_cliente)
@@ -71,14 +88,31 @@ HAVING precio_final >= ALL(
 					AND t.nombre = 'Piso'
 					AND i2.provincia = i.provincia
 							)
-ORDER BY provincia;
+ORDER BY provincia;*/
+
+SELECT provincia, c.nombre,
+        fecha_operacion, precio_final
+FROM operacion JOIN inmueble i1 USING (id_inmueble)
+        JOIN tipo ON (tipo_inmueble = id_tipo)
+        JOIN comprador c USING (id_cliente)
+WHERE tipo.nombre = 'Piso'
+  AND tipo_operacion = 'Venta'
+  AND precio_final >= ALL (
+        SELECT precio_final
+        FROM operacion JOIN
+              inmueble i2 USING (id_inmueble)
+            JOIN tipo ON (tipo_inmueble = id_tipo)
+        WHERE tipo.nombre = 'Piso'
+          AND i1.provincia = i2.provincia
+              AND tipo_operacion = 'Venta'      
+);
 
 /*
 4.- Seleccionar los alquileres más baratos de cada provincia y mes 
 (da igual el día y el año). Debe aparecer el nombre de la provincia, 
 el nombre del mes, el resto de atributos de la tabla inmueble y el precio final del alquiler. 
 */
-SELECT id_inmueble,fecha_alta,tipo_inmueble,tipo_operacion,provincia,
+/*SELECT id_inmueble,fecha_alta,tipo_inmueble,tipo_operacion,provincia,
 		superficie,precio,precio_final,TO_CHAR(o1.fecha_operacion,'Month')
 FROM inmueble i JOIN operacion o1 USING(id_inmueble)
 WHERE tipo_operacion = 'Alquiler'
@@ -92,6 +126,18 @@ HAVING precio_final <= ALL(
 					AND i2.provincia = i.provincia
 					AND EXTRACT(month FROM o1.fecha_operacion) = EXTRACT(month FROM o2.fecha_operacion)
 							)
-ORDER BY provincia,EXTRACT(month FROM o1.fecha_operacion);
+ORDER BY provincia,EXTRACT(month FROM o1.fecha_operacion);*/
 															
+SELECT id_inmueble,fecha_alta,tipo_inmueble,tipo_operacion,provincia,
+		superficie,precio,precio_final,TO_CHAR(o1.fecha_operacion,'Month')
+FROM inmueble i JOIN operacion o1 USING(id_inmueble)
+WHERE tipo_operacion = 'Alquiler'
+	AND precio_final <= ALL(
+				SELECT MIN(precio_final)
+				FROM inmueble i2 JOIN operacion o2 USING(id_inmueble)
+				WHERE tipo_operacion = 'Alquiler'
+					AND i2.provincia = i.provincia
+					AND EXTRACT(month FROM o1.fecha_operacion) = EXTRACT(month FROM o2.fecha_operacion)
+							)
+ORDER BY provincia,EXTRACT(month FROM o1.fecha_operacion);
 
