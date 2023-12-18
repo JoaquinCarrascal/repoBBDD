@@ -9,15 +9,21 @@ subconsulta dentro de otra y, en la interior, usar una subconsulta
 en el select :S (o bien usar WITH)
 */
 WITH porcentocup AS (
-	SELECT id_vuelo, COUNT(id_reserva)*100/max_pasajeros AS "calc"
+	SELECT id_vuelo, COUNT(id_reserva) AS "ocup"
 	FROM avion JOIN vuelo USING(id_avion) 
 		JOIN reserva USING(id_vuelo)
 	GROUP BY id_vuelo,max_pasajeros
+), porcentajecalc AS (
+	SELECT id_vuelo,ocup*100/max_pasajeros AS "calc"
+	FROM avion JOIN vuelo USING(id_avion) 
+		JOIN reserva USING(id_vuelo)
+		JOIN porcentocup USING (id_vuelo)
+	GROUP BY id_vuelo,max_pasajeros,ocup
 						)
 
 SELECT o.nombre, ROUND(AVG(calc),2)||'%'
 FROM vuelo JOIN aeropuerto o ON(o.id_aeropuerto = desde)
-	JOIN porcentocup USING(id_vuelo)
+	JOIN porcentajecalc USING(id_vuelo)
 GROUP BY o.nombre;
 
 /*
@@ -29,16 +35,22 @@ piensa en hacer primero el tráfico de salida, después
 el de llegada (en consultas diferentes pero casi idénticas) 
 y posteriormente en sumarlo.
 */
-SELECT TO_CHAR(salida, 'Mon') AS "meses",o.nombre, COUNT(id_reserva)||' personas salieron'
-FROM vuelo JOIN aeropuerto o ON(o.id_aeropuerto = desde)
-	JOIN reserva USING(id_vuelo)
-GROUP BY meses,o.nombre
-	UNION
-SELECT TO_CHAR(llegada, 'Mon') AS "meses",d.nombre, COUNT(id_reserva)||' personas llegaron'
-FROM vuelo JOIN aeropuerto d ON(d.id_aeropuerto = hasta)
-	JOIN reserva USING(id_vuelo)
-GROUP BY meses,d.nombre;
 
+SELECT ciudad, SUM(trafico)
+FROM (
+    SELECT ciudad, EXTRACT(month FROM llegada),
+            COUNT(*) as "trafico"
+    FROM reserva JOIN vuelo USING (id_vuelo)
+            JOIN aeropuerto ON (hasta = id_aeropuerto)
+    GROUP BY ciudad, EXTRACT(month FROM llegada)
+    UNION
+    SELECT ciudad, EXTRACT(month FROM salida),
+            COUNT(*) as "trafico"
+    FROM reserva JOIN vuelo USING (id_vuelo)
+            JOIN aeropuerto ON (desde = id_aeropuerto)
+    GROUP BY ciudad, EXTRACT(month FROM salida)
+)
+GROUP BY ciudad;
 /*
 3.- Suponiendo que el 30% del precio de cada billete son beneficios 
 (y el 70% son gastos), ¿cuál es el trayecto que más rendimiento 
