@@ -57,7 +57,7 @@ GROUP BY ciudad;
 económico da? Es decir, ¿en qué trayecto estamos ganando más dinero? 
 ¿Y con el que menos? Lo puedes hacer en consultas diferentes usando WITH
 */
-WITH beneficio AS (
+/*WITH beneficio AS (
 	SELECT id_vuelo,precio * (1 - COALESCE(descuento,0)/100) * 30 / 100 AS "maxim"
 	FROM vuelo JOIN aeropuerto o ON (o.id_aeropuerto = desde)
 		JOIN aeropuerto d ON (d.id_aeropuerto = hasta)
@@ -73,13 +73,76 @@ WHERE maxim <= ALL(
 					)
 	OR maxim >= ALL(
 			SELECT maxim FROM beneficio
-					);
+					);*/
+					
+WITH rendimiento_por_trayecto AS (
+    SELECT s.ciudad, ll.ciudad,
+        ROUND(0.3 * SUM(precio * (1 -
+                (COALESCE(descuento,0)/100.0))),2) AS "rendimiento"
+    FROM vuelo JOIN reserva USING (id_vuelo)
+            JOIN aeropuerto s ON (desde = s.id_aeropuerto)
+            JOIN aeropuerto ll ON (hasta = ll.id_aeropuerto)
+    GROUP BY s.ciudad, ll.ciudad
+), rendimiento_maximo AS (
+    SELECT MAX(rendimiento) as "maximo"
+    FROM rendimiento_por_trayecto
+), agrupador AS (
+	SELECT 
+)
+SELECT *
+FROM rendimiento_por_trayecto
+WHERE rendimiento = (
+                        SELECT maximo
+                        FROM rendimiento_maximo
+                    );
+					
+					--con union
+WITH rendimiento_por_trayecto AS (
+    SELECT s.ciudad, ll.ciudad,
+        ROUND(0.3 * SUM(precio * (1 -
+                (COALESCE(descuento,0)/100.0))),2) AS "rendimiento"
+    FROM vuelo JOIN reserva USING (id_vuelo)
+            JOIN aeropuerto s ON (desde = s.id_aeropuerto)
+            JOIN aeropuerto ll ON (hasta = ll.id_aeropuerto)
+    GROUP BY s.ciudad, ll.ciudad
+), rendimiento_maximo AS (
+    SELECT MAX(rendimiento) as "maximo"
+    FROM rendimiento_por_trayecto
+), rendimiento_minimo AS (
+    SELECT MIN(rendimiento) as "minimo"
+    FROM rendimiento_por_trayecto
+)
+SELECT *, 'max' as "valor"
+FROM rendimiento_por_trayecto
+WHERE rendimiento = (
+                        SELECT maximo
+                        FROM rendimiento_maximo
+                    )
+UNION
+SELECT *, 'min'
+FROM rendimiento_por_trayecto
+WHERE rendimiento = (
+                        SELECT minimo
+                        FROM rendimiento_minimo
+                    );
 
 /*
 4.- Seleccionar el nombre y apellidos de los clientes que no 
 han hecho ninguna reserva para un vuelo que salga en el tercer 
 trimestre desde Sevilla.
 */
+SELECT DISTINCT c.nombre, c.apellido1,c.apellido2--,o.ciudad
+FROM cliente c JOIN reserva USING(id_cliente)
+	JOIN vuelo USING (id_vuelo)
+	JOIN aeropuerto o ON (o.id_aeropuerto = desde)
+WHERE id_cliente NOT IN (
+		SELECT id_cliente
+		FROM reserva JOIN vuelo USING (id_vuelo)
+			JOIN aeropuerto o1 ON (o1.id_aeropuerto = desde)
+		WHERE o1.ciudad = 'Sevilla'
+		AND EXTRACT(mon FROM salida) BETWEEN 7 AND 9
+							);
+							--este era innecesario
 SELECT DISTINCT c.nombre, c.apellido1,c.apellido2,o.ciudad
 FROM cliente c JOIN reserva USING(id_cliente)
 	JOIN vuelo USING (id_vuelo)
