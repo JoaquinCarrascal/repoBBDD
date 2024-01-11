@@ -93,18 +93,18 @@ titulo VARCHAR(200) NOT NULL,
 dni_autor VARCHAR(9) NOT NULL,
 cod_genero SMALLINT NOT NULL,
 cod_editorial SMALLINT NOT NULL,
-CONSTRAINT pk_libro PRIMARY KEY (isbn),
-CONSTRAINT fk_libro_autor FOREIGN KEY (dni_autor) REFERENCES Autor,
-CONSTRAINT fk_libro_genero FOREIGN KEY (cod_genero) REFERENCES Genero,
-CONSTRAINT fk_libro_editorial FOREIGN KEY (cod_editorial) REFERENCES Editorial
+CONSTRAINT pk_libro PRIMARY KEY (isbn)
 );
 
 CREATE TABLE Edicion(
 isbn VARCHAR(13),
 fecha_publicacion DATE,
 cantidad INTEGER,
-CONSTRAINT pk_edicion PRIMARY KEY (isbn,fecha_publicacion),
-CONSTRAINT stock_check CHECK (cantidad > 0),
-CONSTRAINT fk_edicion_libro FOREIGN KEY (isbn) REFERENCES Libro
+CONSTRAINT pk_edicion PRIMARY KEY (isbn,fecha_publicacion)
 );
 
+ALTER TABLE Edicion ADD CHECK (cantidad > 0);
+ALTER TABLE Edicion ADD FOREIGN KEY (isbn) REFERENCES Libro;
+ALTER TABLE Libro ADD FOREIGN KEY (dni_autor) REFERENCES Autor;
+ALTER TABLE Libro ADD FOREIGN KEY (cod_genero) REFERENCES Genero;
+ALTER TABLE Libro ADD FOREIGN KEY (cod_editorial) REFERENCES Editorial;
