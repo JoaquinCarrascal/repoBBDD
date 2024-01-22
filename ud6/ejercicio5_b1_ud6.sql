@@ -16,53 +16,53 @@ DROP TABLE IF EXISTS tipo_curso CASCADE;
 
 CREATE TABLE empresa (
     cif VARCHAR(9),
-    nombre VARCHAR(150),
-    direccion VARCHAR(200),
-    telefono VARCHAR(13),
+    nombre VARCHAR(150) NOT NULL,
+    direccion VARCHAR(200) NOT NULL,
+    telefono VARCHAR(13) NOT NULL,
     CONSTRAINT pk_empresa PRIMARY KEY (cif)
 );
 
 
 CREATE TABLE alumno (
     dni VARCHAR(9),
-    nombre VARCHAR(150),
-    direccion VARCHAR(200),
-    telefono VARCHAR(13),
-    edad SMALLINT,
-    empresa VARCHAR(9),
+    nombre VARCHAR(150) NOT NULL,
+    direccion VARCHAR(200) NOT NULL,
+    telefono VARCHAR(13) NOT NULL,
+    edad SMALLINT NOT NULL,
+    empresa VARCHAR(9),/*como se le dan clases a trabajadores y no trabajadores esta DEBE PODER SER NULA*/
     CONSTRAINT pk_alumno PRIMARY KEY (dni)
 );
 
 CREATE TABLE tipo_curso (
     cod_curso SERIAL,
-    duracion INT,
+    duracion INT NOT NULL,
     programa VARCHAR(300),
-    titulo VARCHAR(150),
+    titulo VARCHAR(150) NOT NULL,
     CONSTRAINT pk_tipo_curso PRIMARY KEY (cod_curso)
 );
 
 CREATE TABLE alumno_asiste (
     dni VARCHAR(9),
-    num_concreto INT,
+    num_concreto INT NOT NULL,
 	nota_obtenida float4,
     CONSTRAINT pk_alumnos_asisten PRIMARY KEY (dni,num_concreto)
 );
 
 
 CREATE TABLE curso (
-    num_concreto INT,
-    fecha_inicio DATE,
+    num_concreto SERIAL,
+    fecha_inicio DATE NOT NULL,
     fecha_fin DATE,
-    dni_profesor VARCHAR(9),
-    tipo_curso INT,
+    dni_profesor VARCHAR(9) NOT NULL,
+    tipo_curso INT NOT NULL,
     CONSTRAINT pk_cursos PRIMARY KEY (num_concreto)
 );
 
 CREATE TABLE profesor(
     dni VARCHAR(9),
-    nombre VARCHAR(150),
-    apellido VARCHAR(150),
-    telefono VARCHAR(13),
+    nombre VARCHAR(150) NOT NULL,
+    apellido VARCHAR(150) NOT NULL,
+    telefono VARCHAR(13) NOT NULL,
     direccion VARCHAR(200),
     CONSTRAINT pk_profesor PRIMARY KEY (dni)
 );
@@ -73,13 +73,15 @@ ALTER TABLE alumno_asiste ADD CONSTRAINT fk_alumno_asiste_curso FOREIGN KEY (num
 ALTER TABLE curso ADD CONSTRAINT fk_curso_profesor FOREIGN KEY (dni_profesor) REFERENCES profesor;
 ALTER TABLE curso ADD CONSTRAINT fk_curso_tipo_curso FOREIGN KEY (tipo_curso) REFERENCES tipo_curso;
 
-INSERT INTO empresa 
+
+--PONER EL ORDEN DE INSERCION
+INSERT INTO empresa (cif,nombre,direccion,telefono)
 VALUES ('45996764E','NTT DATA','Avenida Reyes Católicos, 22, Sevilla, España','622198546'),
 	('65496764E','Google','31st Avey Colorado EEUU','+2 32198546'),
 	('15395664W','Bionest','km 70 Carretera Norte Almonte','789980546');
 --SELECT * FROM empresa;
 
-INSERT INTO alumno
+INSERT INTO alumno(dni,nombre,direccion,telefono,edad,empresa)
 VALUES ('45795437R','Pepe botika','Calle tajo, 22, sevilla','111222333','23','45996764E'),
 ('45795437Q','Roberto iniesta','Calle tajo, 22, sevilla','111222333','53','45996764E'),
 ('45795437P','Rob Swire','Calle tajo, 21, sevilla','111222333','22','45996764E'),
@@ -100,7 +102,7 @@ VALUES ('45795437R','Pepe botika','Calle tajo, 22, sevilla','111222333','23','45
 
 --SELECT * FROM alumno;
 
-INSERT INTO tipo_curso
+INSERT INTO tipo_curso(cod_curso,duracion,programa,titulo)
 VALUES (1,30, 'Curso de prevencion de riesgos laborales','Preventor de riesgos'),
 (2,70, 'Curso de pastelería','Pastelero jefe'),
 (3,60, 'Curso de cafetería','maestro de los cafés'),
@@ -108,13 +110,13 @@ VALUES (1,30, 'Curso de prevencion de riesgos laborales','Preventor de riesgos')
 
 --SELECT * FROM tipo_curso;
 
-INSERT INTO profesor
+INSERT INTO profesor(dni,nombre,apellido,telefono,direccion)
 VALUES ('05725427Y','Juan','Martinez','111222333','Calle tango, 17, sevilla'),
 ('55725427L','Paco','Antunez','111222333','Calle tango, 12, sevilla'),
 ('15735427G','Jose','Martinez','111222333','Calle tango, 11, sevilla'),
 ('25725427K','Manuel','Mendoza','111222333','Calle tango, 1, sevilla');
 
 --SELECT * FROM profesor;
-
+--SELECT * FROM curso;
 
 
